@@ -6,16 +6,16 @@ Hand-pose-tracking-based gesture classififer.
 Pose tracking tool: Google Mediapipe API
 Deep Model Framework : Tensorflow 2
 
-Classification models:
-* SVM Classifier
-* MLP Classifier
-* LSTM CLassifier (Best)
+Classification models available:
+* SVM Classifier 
+* MLP Classifier 
+* LSTM CLassifier (Best) 
 
 ## Setting up Repo and Dependecies
 
 <ul>
     <li>Step 1: Clone the repository to local machine 
-        <pre>git@gitlab.vtti.vt.edu:cti/soads/handgesture_pose.git</pre>
+        <pre>git@github.com:bshreyas13/ASL-Captioning-v2.git</pre>
     </li>
 </ul>
 
@@ -131,7 +131,7 @@ _________________________________________________________________
 </pre>
 
 ## LSTM best results
-
+This is as tested for a 4 class gesture classifcation problem
 The training results obtained by running with the example configuration above are as shown:
 <table style="padding: 10px">
     <tr>
@@ -141,26 +141,24 @@ The training results obtained by running with the example configuration above ar
 
 
 ## Roadmap
+* Figure out Data management for hand sign 
 * Hand pose tracking and keypoint extraction.
 * Sample keypoints for every 15 frames and vectorize data.
 * Use vectors to classify gesture.
-* Trained and tested SVM for classification with best results at 34% test accuracy
-* Trained and Tested MLP Classififer , best results is at 53% test accuracy
-* LSTM Classifier trained and best model with 91.6% prediction accuracy on test set obtained.
-* Next step Build Inference Pipeline to test on Webcam
+
 
 ## Authors and acknowledgment
 **Author**:
 * Name: Shreyas Bhat
-* Email: sbhat@vtti.vt.edu
+* Email: bshreyas@vt.edu
 
 **Maintainers**
 
-* Name: Jean Paul Talledo Vilela
-* Email: jtalledovilela@vtti.vt.edu
-
 * Name: Shreyas Bhat
-* Email: sbhat@vtti.vt.edu
+* Email: bshreyas@vt.edu
+
+* Name: Sarang Joshi
+* Email: 
 
 ## Project status
 SVM, MLP and LSTM code and training complete. Inference on Video and WEbcam added. Testing in progress.
