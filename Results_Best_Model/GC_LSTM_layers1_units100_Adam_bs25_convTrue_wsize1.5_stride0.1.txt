@@ -1,0 +1,21 @@
+Model: "GC_LSTM"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ input_1 (InputLayer)        [(None, 45, 84)]          0         
+                                                                 
+ conv1d (Conv1D)             (None, 45, 32)            8096      
+                                                                 
+ dropout (Dropout)           (None, 45, 32)            0         
+                                                                 
+ lstm (LSTM)                 (None, 100)               53200     
+                                                                 
+ dropout_1 (Dropout)         (None, 100)               0         
+                                                                 
+ dense (Dense)               (None, 4)                 404       
+                                                                 
+=================================================================
+Total params: 61,700
+Trainable params: 61,700
+Non-trainable params: 0
+_________________________________________________________________

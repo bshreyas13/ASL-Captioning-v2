@@ -1,0 +1,26 @@
+MODEL CONFIGS
+==============
+MODEL :  LSTM
+MODE :  train
+NUM_LAYERS :  1
+NUM_UNITS :  100
+OPTIMIZER :  Adam
+EPOCHS :  500
+BATCH_SIZE :  25
+INCLUDE_CONV_LAYER :  True
+SAVED_MODEL_PATH :  ../WORKDIR/trained_models/best_model/GC_LSTM_500.h5
+WINDOW_SIZE :  1.5
+STRIDE :  0.1
+INPUT_MODE :  webcam
+SAVE_VIDEO :  False
+PLAY_VIDEO :  True
+SPLIT INFO: train = 70.0%, validation = 20.0%, test = 10.0%
+Saved split info csv files in : C:\Users\sbhat\Documents\Hand_gesture\WORKDIR\split_info\layers1_units100_Adam_bs25_convTrue_wsize1.5_stride0.1!
+X_train shape:(22092, 45, 84)
+Y_train shape:(22092,)
+X_test shape:(3156, 45, 84)
+Y_test shape:(3156,)
+X_val shape:(3156, 45, 84)
+Y_val shape:(3156,)
+
+Test accuracy: 98.8%

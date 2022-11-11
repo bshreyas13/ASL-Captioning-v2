@@ -1,0 +1,37 @@
+## Raw landmarks extraction params
+## Classes list , and check and make appropriate directories
+CLASSES: ['Stop','Go','Change_Lane', 'None']
+## Pose machine paramters
+## If only body pose is true includes torso 4, arms 2 each and 3 kp for hands
+## If both body and high resolution hand torso 4, arms 2 and 21 kp for hands
+BODY_POSE: True
+HIGH_RES_HANDS: True
+## Model Parameters
+## Choose MODEL LSTM/MLP/SVM
+MODEL: LSTM
+## Choose MODE train/test/inference
+MODE: inference
+## Hyperparameters
+## Layers, units, optimizer, epochs and batch_size
+## These are required only for training/testing model
+NUM_LAYERS: 1
+NUM_UNITS: 100
+OPTIMIZER: Adam
+EPOCHS: 250
+BATCH_SIZE: 25
+## Used for building LSTM model with/ or without Conv1D Layer
+INCLUDE_CONV_LAYER: True
+## Mark SAVED _MODEL_PATH as None in case of training new model from scratch
+SAVED_MODEL_PATH: ../WORKDIR/trained_models/best_model/GC_LSTM_120.h5
+## Data parameters
+## Resample window size and stride 
+## If Training use any size of interest
+## If Inference these should match params used while training saved model
+WINDOW_SIZE: 1.5
+STRIDE: 0.1
+## Inference parameters
+## Pass INPUT_MODE as path to video file to run inference on video file
+## For camera use 'webcam'
+INPUT_MODE: ../Data/2022-09-09 10-52-23.mp4
+SAVE_VIDEO: True
+PLAY_VIDEO: False

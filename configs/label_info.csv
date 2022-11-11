@@ -1,0 +1,5 @@
+,Ids,Action,binary_label
+0,0,Stop,[0 0 0 1]
+1,1,Go,[0 1 0 0]
+2,2,Change_Lane,[1 0 0 0]
+3,3,None,[0 0 1 0]
