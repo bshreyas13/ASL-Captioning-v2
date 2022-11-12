@@ -1,6 +1,6 @@
 # handgesture_pose
 
-SOADS Hand Gesture pose
+Hand Gesture pose
 
 Hand-pose-tracking-based gesture classififer.
 Pose tracking tool: Google Mediapipe API
