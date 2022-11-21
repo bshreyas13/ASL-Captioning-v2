@@ -37,10 +37,16 @@ if __name__=="__main__":
     config_tool = Utils(out_dir, raw_dataset=True)
     all_configs = config_tool.load_model_configs(config)   
     body_pose, high_res_hands, classes = all_configs
-  
+    
+
     ## Init UTILS
     tool = DatasetUtils(in_dir, out_dir)
     pose_tool = MPUtils(out_dir = out_dir, save_video=True)
+    
+    ## get character code representation for classes
+    class_codes = {}    
+    for label in classes:
+        class_codes[label] = tool.get_char_code(label)
     
     ## CHECK workdir(AKA out_dir)
     workdir = os.listdir(out_dir)
@@ -120,17 +126,37 @@ if __name__=="__main__":
                 ## Interpret timecodes to frames
                 foi = {}
                 for entry in classes:
-                    frames = tool.timecode_to_frames(timecodes[entry], fps)
-                    foi[entry] = frames
-                    if frame_number in frames:                
-                        X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
-                        Y.append(int(label_df[label_df.Action==entry].Ids))
+                    if len(timecodes[entry]) == 0:
+                        continue
+                    frames_ = tool.timecode_to_frames(timecodes[entry], fps)
+                    ## Frames of Interest , saved for extracting clips if needed
+                    frames_all = []
+                    ## TODO : updated foi
+                    # foi[entry] = [frames_all.append(frames) for frames in list(frames_.values())]
+                    
+                    code = class_codes[entry]
+                    ## Hand of interest
+                    hoi = handedness_codes[code]
+                    hand = keypoints["handedness"][idx]
+                    for clip, frames in frames_.items():
+                        if frame_number in frames :
+                            if hoi[clip] == 'RL':
+                                X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
+                                Y.append(int(label_df[label_df.Action==entry].Ids))
+                            elif hoi[clip] == 'L':
+                                if hand == 'Left':
+                                    X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
+                                    Y.append(int(label_df[label_df.Action==entry].Ids))
+                            elif hoi[clip] == 'R':
+                                if hand == 'Right':
+                                    X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
+                                    Y.append(int(label_df[label_df.Action==entry].Ids))
 
             ## TODO: FIX this , puts stop and other gestures into None causing bad predictions
             ## Update annotation
                     
-            if extract_clips:
-                get_clips_by_label(video_path,foi,out_dir)
+            # if extract_clips:
+            #     get_clips_by_label(video_path,foi,out_dir)
                 
             X_ = np.asarray(X)
             Y_ = np.asarray(Y)

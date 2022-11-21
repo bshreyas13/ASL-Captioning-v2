@@ -1,15 +1,13 @@
-# handgesture_pose
+# ASL Captioning V2
 
-SOADS Hand Gesture pose
+ASL captioning using Hand Gesture recognition from pose
 
 Hand-pose-tracking-based gesture classififer.
 Pose tracking tool: Google Mediapipe API
 Deep Model Framework : Tensorflow 2
 
-Classification models available:
-* SVM Classifier 
-* MLP Classifier 
-* LSTM CLassifier (Best) 
+Classification models:
+* LSTM + Conv1D
 
 ## Setting up Repo and Dependecies
 
@@ -19,8 +17,9 @@ Classification models available:
     </li>
 </ul>
 
-**Core Dependencies**: Python3 , Tensorflow2 , OpenCV, Google Mediapipe (python API), sklearn
+**Core Dependencies**: Python3 , Tensorflow2 , OpenCV, Google Mediapipe (python API), sklearn.
 
+**Note**: requirements.txt in dev
 
 # Dataset Information
 
@@ -37,8 +36,70 @@ If we dont have Raw_Dataset ( with keypoints extracted for all videos).Organize 
 
 ## Usage
 
-Annotation example can be found im Annotation_example
-First create a dataset of vectors from videos and annotation file.
+### Step 0 : Setup
+
+**NOTE TO CONTIRIBUTORS**: The annotations and parsing methods will need to be updated according to datasets used.
+
+Annotation example used for custom dataset used for developignt hsi codebase can be found im Annotation_example
+
+**Note**: If Annotations.xlsx/csv is not found in the right path the program will initialize a file with list of videos is Data. Expected path is "out_dir/Annotations/Annotations.xlsx/csv".
+
+Ensure that you update the config file as needed here is an example used for training the best LSTM model:
+<pre>
+configs/
+ |__LSTM_config.yaml
+</pre>
+
+**In file:**
+<pre>
+## Raw landmarks extraction params
+## Classes list 
+CLASSES: ['Stop','Go','Change_Lane', 'None']
+## Pose machine paramters
+## If only body pose is true includes torso 4, arms 2 each and 3 kp for hands
+## If both body and high resolution hand torso 4, arms 2 and 21 kp for hands
+BODY_POSE: True
+HIGH_RES_HANDS: True
+
+## Data parameters
+## Resample window size and stride 
+## If Training use any size of interest
+## If Inference these should match params used while training saved model
+WINDOW_SIZE: 1.5
+STRIDE: 0.1
+
+## Model Parameters
+## Choose MODEL LSTM/MLP/SVM
+MODEL: LSTM
+## Choose MODE train/test/inference
+MODE: inference 
+## Hyperparameters
+## Layers, units, optimizer, epochs and batch_size
+## These are required only for training/testing model
+NUM_LAYERS: 1
+NUM_UNITS: 100
+OPTIMIZER: Adam
+EPOCHS: 250
+BATCH_SIZE: 25
+## Used for building LSTM model with/ or without Conv1D Layer
+INCLUDE_CONV_LAYER: True
+
+## Mark SAVED _MODEL_PATH as None in case of training new model from scratch
+SAVED_MODEL_PATH: ../WORKDIR/trained_models/best_model/GC_LSTM_250.h5
+
+## Save parameters for tracked videos
+SAVE_VIDEO: True
+PLAY_VIDEO: False
+
+## Inference only parameters can be set as None if MODE != inference
+## Pass INPUT_MODE as path to video file to run inference on video file
+## For camera use 'webcam'
+INPUT_MODE: ../Data/2022-09-09 10-52-23.mp4
+</pre>
+
+If you do not have trained model. start from step 1, else skip to step 3 for inference.
+
+### Step 1: Create Raw Keypoint Dataset from videos.
 ```
 python3 create_raw_dataset.py 
 ```
@@ -48,47 +109,8 @@ Accepted args:
 "--out_dir", "-o", help="output directory ", default=f"{os.path.join(os.path.dirname(os.getcwd()),'WORKDIR')}" 
 "--annotation_filename", "-a_name", help="output filename ", default="Annotations.csv"
 ```
-**Note**: If Annotations.xlsx/csv is not found in the right path the program will initialize a file with list of videos is Data. Expected path is "out_dir/Annotations/Annotations.xlsx/csv".
 
-Ensure that you update the config file as needed here is an example used for training the best LSTM model:
-
-<pre>
-configs/
- |__LSTM_config.yaml
-</pre>
-
-**In file:**
-<pre>
-## Model Parameters
-## Choose MODEL LSTM/MLP/SVM
-MODEL: LSTM
-## Choose MODE train/test/inference
-MODE: inference
-## Hyperparameters
-## Layers, units, optimizer, epochs and batch_size
-## These are required only for training/testing model
-NUM_LAYERS: 1
-NUM_UNITS: 100
-OPTIMIZER: Adam
-EPOCHS: 500
-BATCH_SIZE: 25
-## Used for building LSTM model with/ or without Conv1D Layer
-INCLUDE_CONV_LAYER: True
-## Mark SAVED _MODEL_PATH as None in case of training new model from scratch
-SAVED_MODEL_PATH: ../WORKDIR/trained_models/best_model/GC_LSTM_500.h5
-## Data parameters
-## Resample window size and stride 
-## If Training use any size of interest
-## If Inference these should match params used while training saved model
-WINDOW_SIZE: 1.5
-STRIDE: 0.1
-## Inference parameters
-## Pass INPUT_MODE as path to video file to run inference on video file
-INPUT_MODE: webcam
-SAVE_VIDEO: False
-PLAY_VIDEO: True
-</pre>
-
+### Step 2: Preprocess Raw Keypoint Dataset to prepare data for training.
 ```
 python3 preprocess_train.py 
 ```
@@ -99,8 +121,12 @@ Accepted args:
 "--data_dir", "-d", help="data directory ", default=f"{os.path.join(os.path.dirname(os.getcwd()),'WORKDIR','RAW_Dataset')}"
 "--out_dir", "-o", help="output directory ", default=f"{os.path.join(os.path.dirname(os.getcwd()),'WORKDIR')}"  
 ```
+### Step 3: Inference Mode
 
-## Model
+```
+python3 preprocess_train.py 
+```
+## Classifier Model
 
 Architeture of best LSTM-based model used for gesture calssifcation. This is the model used when code is run with above config settings.Schematic in progress.
 
@@ -110,28 +136,28 @@ Model: "GC_LSTM"
 _________________________________________________________________
  Layer (type)                Output Shape              Param #   
 =================================================================
- input_10 (InputLayer)       [(None, 45, 63)]          0         
+ input_1 (InputLayer)        [(None, 45, 81)]          0         
                                                                  
- conv1d_11 (Conv1D)          (None, 45, 32)            6080      
+ conv1d (Conv1D)             (None, 45, 32)            7808      
                                                                  
- dropout_22 (Dropout)        (None, 45, 32)            0         
+ dropout (Dropout)           (None, 45, 32)            0         
                                                                  
- lstm_11 (LSTM)              (None, 100)               53200     
+ lstm (LSTM)                 (None, 100)               53200     
                                                                  
- dropout_23 (Dropout)        (None, 100)               0         
+ dropout_1 (Dropout)         (None, 100)               0         
                                                                  
- dense_9 (Dense)             (None, 4)                 404       
+ dense (Dense)               (None, 4)                 404       
                                                                  
 =================================================================
-Total params: 59,684
-Trainable params: 59,684
+Total params: 61,412
+Trainable params: 61,412
 Non-trainable params: 0
 _________________________________________________________________
 
 </pre>
 
 ## LSTM best results
-This is as tested for a 4 class gesture classifcation problem
+
 The training results obtained by running with the example configuration above are as shown:
 <table style="padding: 10px">
     <tr>
@@ -141,23 +167,31 @@ The training results obtained by running with the example configuration above ar
 
 
 ## Roadmap
-* Figure out Data management for hand sign 
 * Hand pose tracking and keypoint extraction.
 * Sample keypoints for every 15 frames and vectorize data.
 * Use vectors to classify gesture.
-
+* Trained and tested SVM for classification with best results at 34% test accuracy
+* Trained and Tested MLP Classififer , best results is at 53% test accuracy
+* LSTM Classifier trained and best model with 99.8% prediction accuracy on test set obtained.
+* Inference Pipeline complete for video and webcam.
+* Current data sampling params ( 1.5s windows with 0.1s stride) result in slow switch between actions.
+* Next step is to tune for speed without reducing accuracy. 
 
 ## Authors and acknowledgment
+
 **Author**:
 * Name: Shreyas Bhat
-* Email: bshreyas@vt.edu
+* Email: sbhat@vtti.vt.edu
 
 **Maintainers**
 
-* Name: Shreyas Bhat
-* Email: bshreyas@vt.edu
+* Name: Cody Crofford
+* Email: 
 
 * Name: Sarang Joshi
+* Email: 
+
+* Name: Shreyas Bhat
 * Email: 
 
 ## Project status

@@ -38,8 +38,8 @@ if __name__=="__main__":
         
     ## LOAD: Configs
     config_list = config_tool.load_model_configs(config_path)
-    model_name,mode,saved_model,wsize,stride,comment,in_mode,save_video,play_video = config_list
-    
+ 
+    body_pose, high_res_hands, model_name,mode, saved_model,wsize,stride,comment,in_mode,save_video,play_video = config_list
     body_pose = True
     high_res_hands = True
     
@@ -193,26 +193,26 @@ if __name__=="__main__":
                 image = cv2.putText(image, text_l, org, font, 
                                    fontScale, color, thickness, cv2.LINE_AA)
         
-        # keypoints_R.append(data_tool.landmark_to_point_vector(right_landmarks))
-        # if len(keypoints_R) == wsize:
-        #     r_vector=np.expand_dims(np.array(keypoints_R),axis=0)
-        #     pred_right = gesture_clf.predict(r_vector)
-        #     label_right = label_names_dict[str(np.where(pred_right >= np.max(pred_right), 1, 0).flatten())]
-        #     keypoints_R = keypoints_R[stride:]
+        keypoints_R.append(data_tool.landmark_to_point_vector(right_landmarks))
+        if len(keypoints_R) == wsize:
+            r_vector=np.expand_dims(np.array(keypoints_R),axis=0)
+            pred_right = gesture_clf.predict(r_vector)
+            label_right = label_names_dict[str(np.where(pred_right >= np.max(pred_right), 1, 0).flatten())]
+            keypoints_R = keypoints_R[stride:]
             
-        #     if save_video or play_video:
-        #         ## RIGHT TEXT
-        #         font = cv2.FONT_HERSHEY_SIMPLEX
-        #         # fontScale
-        #         fontScale = 1
-        #         color = (255, 0, 0)
-        #         # Line thickness of 2 px
-        #         thickness = 2
-        #         text_r = "Right " + label_right
-        #         org = (int(0.2 * frame_width), int(0.3 * frame_height))
-        #         # Using cv2.putText() method
-        #         image = cv2.putText(image, text_r, org, font, 
-        #                            fontScale, color, thickness, cv2.LINE_AA)
+            if save_video or play_video:
+                ## RIGHT TEXT
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                # fontScale
+                fontScale = 1
+                color = (255, 0, 0)
+                # Line thickness of 2 px
+                thickness = 2
+                text_r = "Right " + label_right
+                org = (int(0.2 * frame_width), int(0.3 * frame_height))
+                # Using cv2.putText() method
+                image = cv2.putText(image, text_r, org, font, 
+                                    fontScale, color, thickness, cv2.LINE_AA)
         if save_video or play_video:
             # image = pose_utils.draw_text(image, text)
             if len(left) > 0 : 

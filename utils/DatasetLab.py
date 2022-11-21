@@ -160,15 +160,8 @@ class DatasetUtils():
                         h_codes[item[0]] = []
                 
                 for label, res in checks_.items():
-                    name = label.split('_')
-                    if len(name)>1:
-                        code =''
-                        for entry in name:
-                            char = [*entry][0]
-                            code += char
-                    else:
-                        code = [*name[0]][0]
-                    
+                    code = self.get_char_code(label)
+               
                     if len(timecodes[label]) != 0 :
                         if code in h_codes.keys():                         
                             checks_[label] = self.verify_handedness_integrity(
@@ -190,7 +183,18 @@ class DatasetUtils():
             sys.exit()
             
         return valid, timecodes, h_codes
-
+    
+    def get_char_code(self,label):
+        name = label.split('_')
+        if len(name)>1:
+            code =''
+            for entry in name:
+                char = [*entry][0]
+                code += char
+        else:
+            code = [*name[0]][0]
+        return code
+    
     def timecode_to_frames(self, timecodes, fps):
         """
         Parameters
@@ -202,12 +206,12 @@ class DatasetUtils():
 
         Returns
         -------
-        list
-            List of frames corresponding to timecodes
+        dict 
+            dict of frames corresponding to timecodes
 
         """
-        frames = np.asarray([], dtype=int)
-        for timecode in timecodes:
+        frames = {}
+        for idx, timecode in enumerate(timecodes):
             if timecode == 'nan' or timecode == ' ':
                 continue
             markers = str(timecode).split('-')
@@ -216,10 +220,9 @@ class DatasetUtils():
             stop_secs = str(markers[1]).split(':')
             stop_time = int(stop_secs[0])*60 + int(stop_secs[1])
 
-            frames = np.concatenate(
-                (frames, np.arange(start_time*fps, stop_time*fps, dtype=int)), axis=None)
+            frames[idx] = [num for num in range(int(start_time*fps), int(stop_time*fps))]
 
-        return list(frames)
+        return frames
 
     def verify_handedness_integrity(self, code, h_code_list):
         """
@@ -358,6 +361,7 @@ class DatasetUtils():
                 one_idx_list.append(idx)
         one_hand_vector = []
         other_hand_vector = []
+        
         for ind, idx in enumerate(one_idx_list):
             one_hand_vector.append(list(vector[idx, :]))
 
@@ -382,7 +386,12 @@ class DatasetUtils():
 
         """
         left_V, right_V = self.split_vector_by_hand(vector)
-        og_vector = np.concatenate((left_V, right_V))
+        if left_V.shape[0] == 0 :
+            og_vector = right_V
+        elif right_V.shape[0] == 0 :
+            og_vector = left_V
+        else: 
+            og_vector = np.concatenate((left_V, right_V))
 
         df = pd.DataFrame(og_vector)
         a = df.groupby(df.columns[-1])
