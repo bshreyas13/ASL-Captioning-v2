@@ -2,6 +2,9 @@
 
 ASL captioning using Hand Gesture recognition from pose
 
+Hand Gesture pose
+
+
 Hand-pose-tracking-based gesture classififer.
 Pose tracking tool: Google Mediapipe API
 Deep Model Framework : Tensorflow 2
