@@ -28,7 +28,69 @@ def parse_args():
     
     args = args.parse_args()
     return args.data_dir, args.out_dir, args.annotation_filename, args.extract_clips, args.config
+
+def process_video(video, video_path, augment):
+    keypoints,fps, num_frames, aug_params = pose_tool.getKeyPoints(video = video_path, augment=augment)                        
+    ## Update video info
+    v_list.append(video)
+    path_list.append(video_path)
+    fps_list.append(fps)
+    num_frames_list.append(num_frames)
+    aug_params_list.append(aug_params)
     
+    ## Make vectors with features as X and Encoded Labels as Y
+    # each frame in X has [x,y,z,frame_number]
+    Y=[]
+    X=[]
+    for idx , frame_number in enumerate(keypoints['frame_number']):
+        ## Interpret timecodes to frames
+        foi = {}
+        for entry in classes:
+            if len(timecodes[entry]) == 0:
+                continue
+            frames_ = tool.timecode_to_frames(timecodes[entry], fps)
+            ## Frames of Interest , saved for extracting clips if needed
+            frames_all = []
+            ## TODO : updated foi
+            # foi[entry] = [frames_all.append(frames) for frames in list(frames_.values())]
+            
+            code = class_codes[entry]
+            ## Hand of interest
+            hoi = handedness_codes[code]
+            hand = keypoints["handedness"][idx]
+            for clip, frames in frames_.items():
+                if frame_number in frames :
+                    if hoi[clip] == 'RL':
+                        X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
+                        Y.append(int(label_df[label_df.Action==entry].Ids))
+                    elif hoi[clip] == 'L':
+                        if hand == 'Left':
+                            X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
+                            Y.append(int(label_df[label_df.Action==entry].Ids))
+                    elif hoi[clip] == 'R':
+                        if hand == 'Right':
+                            X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
+                            Y.append(int(label_df[label_df.Action==entry].Ids))
+    
+
+            
+    # if extract_clips:
+    #     get_clips_by_label(video_path,foi,out_dir)
+        
+    X_ = np.asarray(X)
+    Y_ = np.asarray(Y)
+    DATA_VECTOR = np.column_stack((X_,Y_))
+    if augment:
+        save_name = video.split('.')[0]+'_augmented.csv'
+    else:
+        save_name = video.split('.')[0]+'.csv'
+    tool.save_vector(DATA_VECTOR,dataset_dir, save_name)
+    
+    ## save video info includes frame rate and num frames and augmentation info
+    video_info_df = pd.DataFrame(list(zip(v_list,fps_list,num_frames_list,path_list,aug_params_list)),
+                                  columns=['video_name','fps','num_frames','video_path','augmentation_info'])
+    video_info_df.to_csv(os.path.join(out_dir,'video_info.csv'))
+
 if __name__=="__main__":
     
     in_dir , out_dir, out_filename, extract_clips, config = parse_args()
@@ -36,7 +98,7 @@ if __name__=="__main__":
     
     config_tool = Utils(out_dir, raw_dataset=True)
     all_configs = config_tool.load_model_configs(config)   
-    body_pose, high_res_hands, classes = all_configs
+    body_pose, high_res_hands, classes, augment = all_configs
     
 
     ## Init UTILS
@@ -109,64 +171,9 @@ if __name__=="__main__":
             continue
         
         else:
-            
-            keypoints,fps, num_frames, aug_params = pose_tool.getKeyPoints(video = video_path, augment=False)                        
-            ## Update video info
-            v_list.append(video)
-            path_list.append(video_path)
-            fps_list.append(fps)
-            num_frames_list.append(num_frames)
-            aug_params_list.append(aug_params)
-
-            ## Make vectors with features as X and Encoded Labels as Y
-            # each frame in X has [x,y,z,frame_number]
-            Y=[]
-            X=[]
-            for idx , frame_number in enumerate(keypoints['frame_number']):
-                ## Interpret timecodes to frames
-                foi = {}
-                for entry in classes:
-                    if len(timecodes[entry]) == 0:
-                        continue
-                    frames_ = tool.timecode_to_frames(timecodes[entry], fps)
-                    ## Frames of Interest , saved for extracting clips if needed
-                    frames_all = []
-                    ## TODO : updated foi
-                    # foi[entry] = [frames_all.append(frames) for frames in list(frames_.values())]
-                    
-                    code = class_codes[entry]
-                    ## Hand of interest
-                    hoi = handedness_codes[code]
-                    hand = keypoints["handedness"][idx]
-                    for clip, frames in frames_.items():
-                        if frame_number in frames :
-                            if hoi[clip] == 'RL':
-                                X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
-                                Y.append(int(label_df[label_df.Action==entry].Ids))
-                            elif hoi[clip] == 'L':
-                                if hand == 'Left':
-                                    X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
-                                    Y.append(int(label_df[label_df.Action==entry].Ids))
-                            elif hoi[clip] == 'R':
-                                if hand == 'Right':
-                                    X.append(tool.landmark_to_point_vector(keypoints['keypoints'][idx],frame_number))     
-                                    Y.append(int(label_df[label_df.Action==entry].Ids))
-
-            ## TODO: FIX this , puts stop and other gestures into None causing bad predictions
-            ## Update annotation
-                    
-            # if extract_clips:
-            #     get_clips_by_label(video_path,foi,out_dir)
-                
-            X_ = np.asarray(X)
-            Y_ = np.asarray(Y)
-            DATA_VECTOR = np.column_stack((X_,Y_))
-            save_name = video.split('.')[0]+'.csv'
-            tool.save_vector(DATA_VECTOR,dataset_dir, save_name)
-    
-            ## save video info includes frame rate and num frames and augmentation info
-            video_info_df = pd.DataFrame(list(zip(v_list,fps_list,num_frames_list,path_list,aug_params_list)),
-                                          columns=['video_name','fps','num_frames','video_path','augmentation_info'])
-            video_info_df.to_csv(os.path.join(out_dir,'video_info.csv'))
-            
+            if augment:
+                ## get augmented vectors
+                process_video(video, video_path, augment)
+            ## get unaugmented vectors
+            process_video(video, video_path, augment=False)
             

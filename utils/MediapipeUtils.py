@@ -96,6 +96,28 @@ class MPUtils():
         
         return img_translation
     
+    def scale_image(self,image,scale_factor):
+        ## TODO : finish this
+        
+        w , h, _ = image.shape
+        scale_size = (int(h*scale_factor),int(w*scale_factor))
+
+        if scale_factor > 1:
+            resized_img = cv2.resize(image,scale_size,interpolation=cv2.INTER_CUBIC)           
+            re_shape =  resized_img.shape 
+            x = abs(re_shape[1]/2 - h/2)
+            y = abs(re_shape[0]/2 - w/2)
+            scaled_img = resized_img[int(y):int(y+w), int(x):int(x+h)]
+                    
+        if scale_factor < 1:
+            resized_img = cv2.resize(image,scale_size,interpolation=cv2.INTER_AREA)
+            re_shape =  resized_img.shape
+            vertical = int(abs(w/2 - re_shape[0]/2))
+            horizontal = int(abs(h/2 - re_shape[1]/2))
+            scaled_img = cv2.copyMakeBorder(resized_img,vertical,vertical,horizontal,horizontal,borderType=cv2.BORDER_CONSTANT,value=[0,0,0])      
+         
+        return scaled_img
+        
     def draw_landmarks(self,landmarks,image,bbox=False):
         """
         Parameters
@@ -164,13 +186,19 @@ class MPUtils():
         
         rotate = random.getrandbits(1)
         translate =random.getrandbits(1)
+        scale = random.getrandbits(1)
+        
         w , h = img_size
-        
-        angle = random.uniform(0,180)
-        t_height, t_width = random.uniform(-h/20,h/20) , random.uniform(-w/20,w/20)  
+        ##rotation angle
+        angle = random.uniform(-30,30)
+        ## translation matrix
+        t_height, t_width = random.uniform(-h/10,h/10) , random.uniform(-w/10,w/10)  
         T = np.float32([[1, 0, t_width], [0, 1, t_height]]) 
+        ## Scaling params
+        scale_factor = random.uniform(0.7, 1.2) 
         
-        return (rotate, translate) , (angle, T)
+        
+        return (rotate, translate, scale) , (angle, T), scale_factor
     
     def getKeyPoints(self,video, augment=False):
         """
@@ -196,8 +224,8 @@ class MPUtils():
         # Create a VideoCapture object and read from input file
         # If the input is the camera, pass 0 instead of the video file name
         cap = cv2.VideoCapture(video)
-        mp_hands = mp.solutions.hands
-        mp_pose = mp.solutions.pose
+        # mp_hands = mp.solutions.hands
+        # mp_pose = mp.solutions.pose
         mp_holistic = mp.solutions.holistic
         
         frame_width = int(cap.get(3))
@@ -208,13 +236,14 @@ class MPUtils():
         if augment:
             print("Augmenting.")
             aug_params = self.get_augmentation_params(size)
-            (rotate, translate),(angle, T) = aug_params 
-            print(f"Augmentation Params:{aug_params[0]}") 
+            (rotate, translate, scale),(angle, T), scale_factor = aug_params 
+            print(f"Augmentation Params (rotate, translate, scale):{aug_params[0]}") 
         else:
-            rotate , translate = False, False
+            rotate , translate, scale = False, False, False
             angle = 0 
             T = []
-            aug_params = (rotate,translate),(angle,T)
+            scale_factor = 1
+            aug_params = (rotate,translate, scale),(angle,T), scale_factor
             
         if self.save_video :
             tracked_dir = os.path.join(self.out_dir,'tracked_videos')
@@ -269,10 +298,13 @@ class MPUtils():
             height, width, _ = image.shape
             image = self.adjust_gamma(image)
             if augment :
+                if scale:
+                    image = self.scale_image(image,scale_factor)
                 if rotate :
                     image = self.rotate_image(image=image, width=width, height=height, angle=angle)
                 if translate:
                     image = self.translate_image(image, width, height, T)
+                
                 
             # To improve performance, optionally mark the image as not writeable to
             # pass by reference.

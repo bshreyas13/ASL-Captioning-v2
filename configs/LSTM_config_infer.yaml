@@ -6,19 +6,20 @@ CLASSES: ['Stop','Go','Change_Lane', 'None']
 ## If both body and high resolution hand torso 4, arms 2 and 21 kp for hands
 BODY_POSE: True
 HIGH_RES_HANDS: True
+AUGMENT_DATA: True
 
 ## Data parameters
 ## Resample window size and stride 
 ## If Training use any size of interest
 ## If Inference these should match params used while training saved model
-WINDOW_SIZE: 1.5
+WINDOW_SIZE: 0.5
 STRIDE: 0.1
 
 ## Model Parameters
 ## Choose MODEL LSTM/MLP/SVM
 MODEL: LSTM
 ## Choose MODE train/test/inference
-MODE: inference 
+MODE: inference
 ## Hyperparameters
 ## Layers, units, optimizer, epochs and batch_size
 ## These are required only for training/testing model
@@ -40,4 +41,4 @@ PLAY_VIDEO: False
 ## Inference only parameters can be set as None if MODE != inference
 ## Pass INPUT_MODE as path to video file to run inference on video file
 ## For camera use 'webcam'
-INPUT_MODE: ../Data/2022-09-09 10-52-23.mp4
+INPUT_MODE: ../Data/2022-09-12 10-50-44.mp4

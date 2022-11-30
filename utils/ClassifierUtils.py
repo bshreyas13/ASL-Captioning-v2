@@ -584,6 +584,7 @@ class Utils():
         ## POSE MACHINE params
         body_pose = configs['BODY_POSE']
         high_res_hands = configs['HIGH_RES_HANDS']
+        augment = configs['AUGMENT_DATA']
         ## MODEL Parameters
         model_name = configs["MODEL"]
         mode = configs["MODE"]
@@ -629,7 +630,7 @@ class Utils():
                         print(key, ": ", value)
         ## Return
         if self.raw_dataset:
-            return body_pose, high_res_hands, classes
+            return [body_pose, high_res_hands, classes, augment]
         
         elif mode == 'train' or mode == 'test':         
             return [body_pose, high_res_hands, model_name,mode,

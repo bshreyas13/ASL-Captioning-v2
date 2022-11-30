@@ -167,58 +167,56 @@ if __name__=="__main__":
                         left.append(landmark)
         if len(left) > 0 :               
             left_landmarks = CustomLandmarkList(left)
-
+            keypoints_L.append(data_tool.landmark_to_point_vector(left_landmarks))
+            if len(keypoints_L) == wsize:
+                l_vector=np.expand_dims(np.array(keypoints_L),axis=0)
+                pred_left = gesture_clf.predict(l_vector)
+                label_left = label_names_dict[str(np.where(pred_left >= np.max(pred_left), 1, 0).flatten())]
+                keypoints_L = keypoints_L[stride:]
+                
+                if save_video or play_video:
+                    ## LEFT TEXT
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    # fontScale
+                    fontScale = 1
+                    color = (255, 0, 0)
+                    # Line thickness of 2 px
+                    thickness = 2                        
+                    # org
+                    text_l = "Left " + label_left
+                    org = (int(0.8 * frame_width), int(0.3 * frame_height))
+                    # Using cv2.putText() method
+                    image = cv2.putText(image, text_l, org, font, 
+                                       fontScale, color, thickness, cv2.LINE_AA)
+        
         if len(right) > 0 :
-            right_landmarks = CustomLandmarkList(right)
-        
-        keypoints_L.append(data_tool.landmark_to_point_vector(left_landmarks))
-        if len(keypoints_L) == wsize:
-            l_vector=np.expand_dims(np.array(keypoints_L),axis=0)
-            pred_left = gesture_clf.predict(l_vector)
-            label_left = label_names_dict[str(np.where(pred_left >= np.max(pred_left), 1, 0).flatten())]
-            keypoints_L = keypoints_L[stride:]
-            
-            if save_video or play_video:
-                ## LEFT TEXT
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                # fontScale
-                fontScale = 1
-                color = (255, 0, 0)
-                # Line thickness of 2 px
-                thickness = 2                        
-                # org
-                text_l = "Left " + label_left
-                org = (int(0.8 * frame_width), int(0.3 * frame_height))
-                # Using cv2.putText() method
-                image = cv2.putText(image, text_l, org, font, 
-                                   fontScale, color, thickness, cv2.LINE_AA)
-        
-        keypoints_R.append(data_tool.landmark_to_point_vector(right_landmarks))
-        if len(keypoints_R) == wsize:
-            r_vector=np.expand_dims(np.array(keypoints_R),axis=0)
-            pred_right = gesture_clf.predict(r_vector)
-            label_right = label_names_dict[str(np.where(pred_right >= np.max(pred_right), 1, 0).flatten())]
-            keypoints_R = keypoints_R[stride:]
-            
-            if save_video or play_video:
-                ## RIGHT TEXT
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                # fontScale
-                fontScale = 1
-                color = (255, 0, 0)
-                # Line thickness of 2 px
-                thickness = 2
-                text_r = "Right " + label_right
-                org = (int(0.2 * frame_width), int(0.3 * frame_height))
-                # Using cv2.putText() method
-                image = cv2.putText(image, text_r, org, font, 
-                                    fontScale, color, thickness, cv2.LINE_AA)
+            right_landmarks = CustomLandmarkList(right)   
+            keypoints_R.append(data_tool.landmark_to_point_vector(right_landmarks))
+            if len(keypoints_R) == wsize:
+                r_vector=np.expand_dims(np.array(keypoints_R),axis=0)
+                pred_right = gesture_clf.predict(r_vector)
+                label_right = label_names_dict[str(np.where(pred_right >= np.max(pred_right), 1, 0).flatten())]
+                keypoints_R = keypoints_R[stride:]
+                
+                if save_video or play_video:
+                    ## RIGHT TEXT
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    # fontScale
+                    fontScale = 1
+                    color = (255, 0, 0)
+                    # Line thickness of 2 px
+                    thickness = 2
+                    text_r = "Right " + label_right
+                    org = (int(0.2 * frame_width), int(0.3 * frame_height))
+                    # Using cv2.putText() method
+                    image = cv2.putText(image, text_r, org, font, 
+                                        fontScale, color, thickness, cv2.LINE_AA)
         if save_video or play_video:
             # image = pose_utils.draw_text(image, text)
             if len(left) > 0 : 
-                image = pose_utils.draw_landmarks(right_landmarks,image)
-            if len(left) > 0 : 
                 image = pose_utils.draw_landmarks(left_landmarks,image)
+            if len(right) > 0 : 
+                image = pose_utils.draw_landmarks(right_landmarks,image)
         if play_video:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             # image = cv2.flip(image,1)
